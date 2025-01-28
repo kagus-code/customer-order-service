@@ -15,4 +15,4 @@ pre-commit = "==4.1.0"
 coverage = "==7.6.10"
 
 [requires]
-python_version = "3.12"
+python_version = "3.12.1"
