@@ -45,11 +45,57 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.openid_connect",
+    "dj_rest_auth",
     "app",
     "app.authentication",
 ]
 
+
+# Configure authentication backends
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",  # Default
+    "allauth.account.auth_backends.AuthenticationBackend",  # Required for django-allauth
+]
+
+
+# Add OpenID Connect Provider Configuration
+SOCIALACCOUNT_PROVIDERS = {
+    "openid_connect": {
+        "APPS": [
+            {
+                "provider_id": "auth0",
+                "name": "Auth0",
+                "client_id": config("AUTH0_CLIENT_ID"),
+                "secret": config("AUTH0_CLIENT_SECRET"),
+                "settings": {
+                    "server_url": config("AUTH0_DOMAIN"),
+                },
+            },
+        ],
+    }
+}
+
+
+# REST Framework authentication
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+    ],
+}
+
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "jwt-auth",
+}
+
+
 MIDDLEWARE = [
+    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
