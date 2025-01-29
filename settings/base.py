@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.openid_connect",
     "dj_rest_auth",
+    "drf_yasg",
     "app",
     "app.authentication",
 ]
@@ -58,9 +59,15 @@ INSTALLED_APPS = [
 
 # Configure authentication backends
 AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",  # Default
+    "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",  # Required for django-allauth
 ]
+
+
+AUTH0_DOMAIN = config("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = config("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = config("AUTH0_CLIENT_SECRET")
+AUTH0_AUDIENCE = config("AUTH0_AUDIENCE")
 
 
 # Add OpenID Connect Provider Configuration
@@ -180,3 +187,21 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "authentication.User"
+
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "openid": {
+            "type": "oauth2",
+            "flow": "authorizationCode",
+            "authorizationUrl": f'https:// {config("AUTH0_DOMAIN")}/authorize',
+            "tokenUrl": f'https:// {config("AUTH0_DOMAIN")}/oauth/token',
+            "scopes": {
+                "openid": "OpenID Connect scope",
+                "profile": "Access user profile information",
+                "email": "Access user email address",
+            },
+        }
+    },
+    "USE_SESSION_AUTH": False,
+}
