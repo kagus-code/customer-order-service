@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "app",
     "app.authentication",
+    "app.customerorders",
 ]
 
 
