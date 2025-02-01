@@ -35,28 +35,33 @@ class Customer(TimeStampedModel):
 
 class Order(TimeStampedModel):
     code = models.CharField(
-        max_length=50, unique=True, default=generate_unique_code, editable=False
+        max_length=50,
+        unique=True,
+        default=generate_unique_code,
+        editable=False,
     )
     customer = models.ForeignKey(
         Customer, on_delete=models.CASCADE, related_name="orders"
     )
-    total_amount = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
+    total_amount = models.FloatField(null=True)
     is_paid = models.BooleanField(default=False)
     paid_at = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     is_delivered = models.BooleanField(default=False)
-    delivered_at = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    delivered_at = models.DateTimeField(
+        auto_now_add=False, null=True, blank=True
+    )
 
     def __str__(self):
-        return f"Order {self.customer.code}:(${self.total_amount})"
+        return f"Order {self.customer.code}:({self.total_amount})"
 
 
 class OrderItem(TimeStampedModel):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="items"
+    )
     name = models.CharField(max_length=200, null=True, blank=True)
     qty = models.IntegerField(null=True, blank=True, default=0)
-    price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    price = models.FloatField(null=True)
 
     def __str__(self):
         return f"({self.order.code}) {self.name} "
