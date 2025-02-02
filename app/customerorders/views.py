@@ -8,8 +8,15 @@ from rest_framework import (
     viewsets,
 )
 
-from app.customerorders.models import Customer
-from app.customerorders.serializers import CustomerSerializer
+from app.customerorders.models import (
+    Customer,
+    Order,
+)
+from app.customerorders.serializers import (
+    CustomerSerializer,
+    OrderCreationSerializer,
+    OrderReadSerializer,
+)
 from app.helpers.custom_pagination import StandardResultsSetPagination
 
 
@@ -18,12 +25,12 @@ class CustomersFilters(FilterSet):
     Filter set for Customer model.
 
     Allows filtering customers by name and code.
-    - `name`: Performs a case-insensitive search on the `code` field.
-    - `code`: Filters customers by the exact `name` field.
+    - `name`: Performs a case-insensitive search on the `name` field.
+    - `code`: Filters customers by the exact `code` field.
     """
 
-    name = CharFilter(field_name="code", lookup_expr="icontains")
-    code = CharFilter(field_name="name")
+    name = CharFilter(field_name="name", lookup_expr="icontains")
+    code = CharFilter(field_name="code")
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -56,3 +63,39 @@ class CustomerViewSet(viewsets.ModelViewSet):
     filterset_class = CustomersFilters
     pagination_class = StandardResultsSetPagination
     search_fields = ["email", "phone"]
+
+
+class OrdersViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for managing orders.
+
+    This ViewSet provides CRUD operations for handling orders:
+
+    - `POST`: Creates a new order (`OrderCreationSerializer`).
+    - `GET`: Retrieves order details (`OrderReadSerializer`).
+    - `PUT`: Updates an order.
+    - `PATCH`: Partially updates an order.
+    - `DELETE`: Deletes an order.
+
+    The serializer used depends on the request method.
+    """
+
+    queryset = Order.objects.all()
+    serializer_class = OrderReadSerializer
+
+    def get_serializer_class(self):
+        """
+        Returns the appropriate serializer based on the request method.
+
+        - `POST`: Uses `OrderCreationSerializer` for order creation.
+        - `GET`: Uses `OrderReadSerializer` for retrieving orders.
+        - Other methods default to `OrderReadSerializer`.
+
+        Returns:
+            Serializer: The appropriate serializer class.
+        """
+        if self.request.method in ["POST"]:
+            return OrderCreationSerializer
+        elif self.request.method in ["GET"]:
+            return OrderReadSerializer
+        return super().get_serializer_class()
