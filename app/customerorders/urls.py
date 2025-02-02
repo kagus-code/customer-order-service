@@ -8,8 +8,8 @@ from app.customerorders.views import (
 router = DefaultRouter()
 
 
-router.register(r"customers", CustomerViewSet, "customers")
 router.register(r"orders", OrdersViewSet, "orders")
+router.register(r"", CustomerViewSet, "customers")
 
 
 urlpatterns = []
