@@ -1,4 +1,5 @@
 from django_filters import (
+    BooleanFilter,
     CharFilter,
     FilterSet,
 )
@@ -31,6 +32,16 @@ class CustomersFilters(FilterSet):
 
     name = CharFilter(field_name="name", lookup_expr="icontains")
     code = CharFilter(field_name="code")
+
+
+class OrderFilter(FilterSet):
+    customer = CharFilter(field_name="customer__name", lookup_expr="icontains")
+    is_paid = BooleanFilter(
+        field_name="is_paid",
+    )
+    is_delivered = BooleanFilter(
+        field_name="is_delivered",
+    )
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -82,6 +93,14 @@ class OrdersViewSet(viewsets.ModelViewSet):
 
     queryset = Order.objects.all()
     serializer_class = OrderReadSerializer
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+    filterset_class = OrderFilter
+    pagination_class = StandardResultsSetPagination
+    search_fields = ["code"]
 
     def get_serializer_class(self):
         """
