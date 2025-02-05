@@ -24,11 +24,6 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
-      rabbitmq:
-        image: rabbitmq:management
-        ports:
-          - 5672:5672
-
     env:
       SECRET_KEY: 'secretive_things_remain_hidden'
       DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/github_actions'
@@ -71,3 +66,57 @@ jobs:
         run: |
           pipenv run coverage run -m pytest --disable-warnings
           pipenv run coverage report -m
+
+
+  build-and-deploy:
+            name: Build and Deploy to DigitalOcean
+            runs-on: ubuntu-latest
+            needs: [test]
+            if: github.ref == 'refs/heads/main'
+
+            steps:
+              - name: Checkout repository
+                uses: actions/checkout@v4
+
+              - name: Deploy to DigitalOcean
+                uses: appleboy/ssh-action@master
+                with:
+                  host: ${{ secrets.HOSTURL }}
+                  username: ${{ secrets.HOSTNAME }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  script_stop: true
+                  script: |
+                    # Check if the django-projects directory exists
+                    if [ ! -d "~/django-projects" ]; then
+                      echo "First-time setup: Creating django-projects directory and installing dependencies..."
+                      mkdir -p ~/django-projects
+                      sudo apt update
+                      sudo apt install -y docker.io docker-compose
+                      sudo systemctl start docker
+                      sudo systemctl enable docker
+                    fi
+
+                    # Navigate to the django-projects directory
+                    cd ~/django-projects
+
+                    # Clone the repository if the project folder does not exist
+                    if [ ! -d "customer-order-service" ]; then
+                      echo "First-time clone of the repository..."
+                      git clone ${{ secrets.REPO_URL }} customer-order-service
+                    fi
+
+                    cd customer-order-service
+
+                    # Pull the latest changes
+                    git fetch origin
+                    git reset --hard origin/main
+                    git pull origin main
+
+                    # Bring down any existing containers
+                    docker-compose down
+
+                    # Build and start containers
+                    docker-compose up -d --build
+
+                    # Clean up unused Docker resources
+                    docker system prune -f
