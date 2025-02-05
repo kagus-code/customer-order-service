@@ -45,12 +45,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "rest_framework.authtoken",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.socialaccount.providers.openid_connect",
-    "dj_rest_auth",
+    "mozilla_django_oidc",
+    "django_filters",
     "drf_yasg",
     "app",
     "app.authentication",
@@ -58,55 +54,45 @@ INSTALLED_APPS = [
 ]
 
 
-# Configure authentication backends
 AUTHENTICATION_BACKENDS = [
+    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",  # Required for django-allauth
 ]
 
 
-AUTH0_DOMAIN = config("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID = config("AUTH0_CLIENT_ID")
-AUTH0_CLIENT_SECRET = config("AUTH0_CLIENT_SECRET")
-AUTH0_AUDIENCE = config("AUTH0_AUDIENCE")
+# Auth0 Configuration
+OIDC_RP_CLIENT_ID = config("AUTH0_CLIENT_ID")
+OIDC_RP_CLIENT_SECRET = config("AUTH0_CLIENT_SECRET")
+OIDC_RP_SIGN_ALGO = "RS256"  # Auth0 uses RS256
+OIDC_OP_AUTHORIZATION_ENDPOINT = f"{config("AUTH0_DOMAIN")}/authorize"
+OIDC_OP_TOKEN_ENDPOINT = f"{config("AUTH0_DOMAIN")}/oauth/token"
+OIDC_OP_USER_ENDPOINT = f"{config("AUTH0_DOMAIN")}/userinfo"
+OIDC_OP_JWKS_ENDPOINT = f"{config("AUTH0_DOMAIN")}/.well-known/jwks.json"
+OIDC_OP_ISSUER = f"{config("AUTH0_DOMAIN")}/"
+
+# Django login/logout redirection
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = f"{config("AUTH0_DOMAIN")}/v2/logout?client_id={OIDC_RP_CLIENT_ID}&returnTo={config("SERVER_URL")}"
+
+# Configure the JWT validation
+OIDC_RP_IDP_SIGN_KEY = None  # Automatically fetch JWKS for RS256
+OIDC_RP_SCOPES = "openid profile email"
+OIDC_CREATE_USER = True  # Create users in Django upon first login
+OIDC_STORE_ACCESS_TOKEN = True
+OIDC_STORE_ID_TOKEN = True
+OIDC_STORE_REFRESH_TOKEN = True
 
 
-# Add OpenID Connect Provider Configuration
-SOCIALACCOUNT_PROVIDERS = {
-    "openid_connect": {
-        "APPS": [
-            {
-                "provider_id": "auth0",
-                "name": "Auth0",
-                "client_id": config("AUTH0_CLIENT_ID"),
-                "secret": config("AUTH0_CLIENT_SECRET"),
-                "settings": {
-                    "server_url": config("AUTH0_DOMAIN"),
-                },
-            },
-        ],
-    }
-}
-
-
-# REST Framework authentication
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "mozilla_django_oidc.contrib.drf.OIDCAuthentication",  # Add OIDC authentication
+        "rest_framework.authentication.SessionAuthentication",  # Optional: for browser-based APIs
     ],
     "DEFAULT_PERMISSION_CLASSES": [
-        # "rest_framework.permissions.IsAuthenticated",
+        "rest_framework.permissions.IsAuthenticated",  # Require authentication for all endpoints
     ],
 }
-
-REST_AUTH = {
-    "USE_JWT": True,
-    "JWT_AUTH_COOKIE": "jwt-auth",
-}
-
-
 MIDDLEWARE = [
-    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -195,17 +181,6 @@ AUTH_USER_MODEL = "authentication.User"
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
-        "openid": {
-            "type": "oauth2",
-            "flow": "authorizationCode",
-            "authorizationUrl": f'https:// {config("AUTH0_DOMAIN")}/authorize',
-            "tokenUrl": f'https:// {config("AUTH0_DOMAIN")}/oauth/token',
-            "scopes": {
-                "openid": "OpenID Connect scope",
-                "profile": "Access user profile information",
-                "email": "Access user email address",
-            },
-        }
-    },
-    "USE_SESSION_AUTH": False,
+        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
+    }
 }
