@@ -37,7 +37,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/customers/", include("app.customerorders.urls")),
+    path("api/", include("app.customerorders.urls")),
     # swagger URLS
     path(
         "docs/swagger/",
@@ -49,6 +49,5 @@ urlpatterns = [
         schema_view.with_ui("redoc", cache_timeout=0),
         name="schema-redoc",
     ),
-    # social auths
-    path("api/accounts/", include("allauth.urls")),
+    path("oidc/", include("mozilla_django_oidc.urls")),
 ]
