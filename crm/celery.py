@@ -15,6 +15,7 @@ app = Celery(
     "crm",
     broker_url=config("BROKER_URL"),
 )
+app.conf.broker_connection_retry_on_startup = True
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
