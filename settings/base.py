@@ -71,7 +71,7 @@ OIDC_OP_JWKS_ENDPOINT = f"{config("AUTH0_DOMAIN")}/.well-known/jwks.json"
 OIDC_OP_ISSUER = f"{config("AUTH0_DOMAIN")}/"
 
 # Django login/logout redirection
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/docs/swagger"
 LOGOUT_REDIRECT_URL = f"{config("AUTH0_DOMAIN")}/v2/logout?client_id={OIDC_RP_CLIENT_ID}&returnTo={config("SERVER_URL")}"
 
 # Configure the JWT validation
@@ -86,7 +86,7 @@ OIDC_STORE_REFRESH_TOKEN = True
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "mozilla_django_oidc.contrib.drf.OIDCAuthentication",  # Add OIDC authentication
-        "rest_framework.authentication.SessionAuthentication",  # Optional: for browser-based APIs
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",  # Require authentication for all endpoints
