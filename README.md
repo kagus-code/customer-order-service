@@ -10,7 +10,11 @@ Customer Order API is a Django DRF-based service that provides order management 
 - **OpenID Connect Authentication**: Uses session authentication with OpenID Connect.
 - **Celery Integration**: Asynchronous task processing using RabbitMQ as a message broker.
 - **SMS Integration**: send the customer an SMS alerting them of an Order with Africa’s Talking SMS gateway.
+- **API Documentation**: Available at:
 
+  - Swagger UI: [`/docs/swagger/`](./docs/swagger/)
+
+  - ReDoc: [`/redoc/`](./redoc/)
 ---
 
 ## Setup Guide
