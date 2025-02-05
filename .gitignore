@@ -131,3 +131,6 @@ celerybeat-schedule.bak
 flower.dir
 flower.dat
 flower.bak
+
+rabbitmq-definitions.json
+

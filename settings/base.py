@@ -55,7 +55,7 @@ INSTALLED_APPS = [
 
 
 AUTHENTICATION_BACKENDS = [
-    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
+    "app.authentication.views.CustomOIDCBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
