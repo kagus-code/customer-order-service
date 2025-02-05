@@ -20,6 +20,7 @@ from django.urls import (
     include,
     path,
 )
+from django.views.generic.base import RedirectView
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
@@ -50,4 +51,7 @@ urlpatterns = [
         name="schema-redoc",
     ),
     path("oidc/", include("mozilla_django_oidc.urls")),
+    # Redirect Django's login URL to OIDC to redirect swagger login and logout functions
+    path("accounts/login/", RedirectView.as_view(url="/oidc/authenticate/")),
+    path("accounts/logout/", RedirectView.as_view(url="/oidc/logout/")),
 ]
