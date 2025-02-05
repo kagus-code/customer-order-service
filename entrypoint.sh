@@ -8,4 +8,5 @@ python manage.py migrate --noinput
 
 
 echo "Starting Gunicorn server..."
-exec gunicorn customer_order_service.wsgi:application --bind 0.0.0.0:3016 --workers 4
+python manage.py runserver 0.0.0.0:3016
+
