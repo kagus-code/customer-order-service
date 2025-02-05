@@ -24,6 +24,10 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
+      rabbitmq:
+        image: rabbitmq:management
+        ports:
+          - 5672:5672
     env:
       SECRET_KEY: 'secretive_things_remain_hidden'
       DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/github_actions'
