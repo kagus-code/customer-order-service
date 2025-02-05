@@ -72,7 +72,9 @@ OIDC_OP_ISSUER = f"{config("AUTH0_DOMAIN")}/"
 
 # Django login/logout redirection
 LOGIN_REDIRECT_URL = "/docs/swagger"
-LOGOUT_REDIRECT_URL = f"{config("AUTH0_DOMAIN")}/v2/logout?client_id={OIDC_RP_CLIENT_ID}&returnTo={config("SERVER_URL")}"
+LOGOUT_REDIRECT_URL = "/"
+
+ALLOW_LOGOUT_GET_METHOD = True
 
 # Configure the JWT validation
 OIDC_RP_IDP_SIGN_KEY = None  # Automatically fetch JWKS for RS256
