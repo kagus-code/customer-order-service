@@ -1,0 +1,59 @@
+version: '3'
+services:
+  customer-order-service:
+    restart: always
+    build: ./
+    env_file:
+      - ./.env
+    command: ./entrypoint.sh
+    ports:
+      - 127.0.0.1:3016:3016
+    depends_on:
+      - customerorder-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3016"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  customerorder-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: customerorder
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - aircheckdb:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5438:5432"
+
+  crmcelery:
+    restart: always
+    build:
+      context: .
+    command: celery -A crm worker -l info
+    env_file:
+      - ./.env
+    depends_on:
+      - customer-order-service
+      - crmrabbitmq
+
+  crmrabbitmq:
+    restart: always
+    image: rabbitmq:latest
+    env_file:
+      - ./.env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${DB_USER}
+      RABBITMQ_DEFAULT_PASS: ${DB_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "5678:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  aircheckdb:
