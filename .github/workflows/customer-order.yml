@@ -1,0 +1,72 @@
+name: Customer Order API
+
+on:
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17.2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:management
+        ports:
+          - 5672:5672
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.1"
+
+      - name: Install psycopg2 prerequisites
+        run: |
+            sudo apt-get install python3-dev libpq-dev
+
+      - name: Install Pipenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv
+
+      - name: Install dependencies
+        run: pipenv install --deploy --ignore-pipfile
+
+      - name: Run migrations
+        run: pipenv run python manage.py migrate
+
+      - name: Run tests with Pytest
+        env:
+          SECRET_KEY: 'secretive_things_remain_hidden'
+          DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/github_actions'
+          DEBUG: true
+          SETTINGS_FILE: "settings.test"
+          BROKER_URL: "amqp://guest:guest@localhost:5672/"
+          SERVER_URL: ${{ secrets.SERVER_URL }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
+          AFRICASTALKING_USERNAME: ${{ secrets.AFRICASTALKING_USERNAME }}
+          AFRICASTALKING_API_KEY: ${{ secrets.AFRICASTALKING_API_KEY }}
+
+        run: |
+          pipenv run coverage run -m pytest --disable-warnings
+          pipenv run coverage report -m
+
