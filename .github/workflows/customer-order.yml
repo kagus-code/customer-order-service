@@ -1,0 +1,126 @@
+name: Customer Order API
+
+on:
+  pull_request:
+    branches:
+      - develop
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17.2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+      rabbitmq:
+        image: rabbitmq:management
+        ports:
+          - 5672:5672
+    env:
+      SECRET_KEY: 'secretive_things_remain_hidden'
+      DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/github_actions'
+      DEBUG: true
+      SETTINGS_FILE: "settings.test"
+      BROKER_URL: "amqp://guest:guest@localhost:5672/"
+      SERVER_URL: "http://127.0.0.1:8000"
+      AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+      AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+      AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
+      AFRICASTALKING_USERNAME: ${{ secrets.AFRICASTALKING_USERNAME }}
+      AFRICASTALKING_API_KEY: ${{ secrets.AFRICASTALKING_API_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.1"
+
+      - name: Install psycopg2 prerequisites
+        run: |
+          sudo apt-get install python3-dev libpq-dev
+
+      - name: Install Pipenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pipenv
+
+      - name: Install dependencies
+        run: pipenv install --deploy --ignore-pipfile
+
+      - name: Run migrations
+        run: pipenv run python manage.py migrate
+
+      - name: Run tests with Pytest
+        run: |
+          pipenv run coverage run -m pytest --disable-warnings
+          pipenv run coverage report -m
+
+
+  build-and-deploy:
+            name: Build and Deploy to DigitalOcean
+            runs-on: ubuntu-latest
+            needs: [test]
+            if: github.ref == 'refs/heads/main'
+
+            steps:
+              - name: Checkout repository
+                uses: actions/checkout@v4
+
+              - name: Deploy to DigitalOcean
+                uses: appleboy/ssh-action@master
+                with:
+                  host: ${{ secrets.HOSTURL }}
+                  username: ${{ secrets.HOSTNAME }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  script_stop: true
+                  script: |
+                    # Check if the django-projects directory exists
+                    if [ ! -d "~/django-projects" ]; then
+                      echo "First-time setup: Creating django-projects directory and installing dependencies..."
+                      mkdir -p ~/django-projects
+                      sudo apt update
+                      sudo apt install -y docker.io docker-compose
+                      sudo systemctl start docker
+                      sudo systemctl enable docker
+                    fi
+
+                    # Navigate to the django-projects directory
+                    cd ~/django-projects
+
+                    # Clone the repository if the project folder does not exist
+                    if [ ! -d "customer-order-service" ]; then
+                      echo "First-time clone of the repository..."
+                      git clone ${{ secrets.REPO_URL }} customer-order-service
+                    fi
+
+                    cd customer-order-service
+
+                    # Pull the latest changes
+                    git fetch origin
+                    git reset --hard origin/main
+                    git pull origin main
+
+                    # Bring down any existing containers
+                    docker-compose down
+
+                    # Build and start containers
+                    docker-compose up -d --build
+
+                    # Clean up unused Docker resources
+                    docker system prune -f
