@@ -8,9 +8,11 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
 import os
+from decouple import config
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "crm.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", config("SETTINGS_FILE"))
+
 
 application = get_asgi_application()
