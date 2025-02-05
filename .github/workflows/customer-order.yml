@@ -49,9 +49,6 @@ jobs:
         run: pipenv install --deploy --ignore-pipfile
 
       - name: Run migrations
-        run: pipenv run python manage.py migrate
-
-      - name: Run tests with Pytest
         env:
           SECRET_KEY: 'secretive_things_remain_hidden'
           DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/github_actions'
@@ -65,6 +62,9 @@ jobs:
           AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
           AFRICASTALKING_USERNAME: ${{ secrets.AFRICASTALKING_USERNAME }}
           AFRICASTALKING_API_KEY: ${{ secrets.AFRICASTALKING_API_KEY }}
+        run: pipenv run python manage.py migrate
+
+      - name: Run tests with Pytest
 
         run: |
           pipenv run coverage run -m pytest --disable-warnings
