@@ -7,7 +7,7 @@ services:
       - ./.env
     command: ./entrypoint.sh
     ports:
-      - 127.0.0.1:3016:3016
+      - 3016:3016
     depends_on:
       - customerorder-db
     healthcheck:
@@ -23,9 +23,9 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - aircheckdb:/var/lib/postgresql/data
+      - crmdb:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5438:5432"
+      - "5438:5432"
 
   crmcelery:
     restart: always
@@ -56,4 +56,4 @@ services:
       retries: 3
 
 volumes:
-  aircheckdb:
+  crmdb:
