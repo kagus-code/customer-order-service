@@ -6,7 +6,6 @@ from __future__ import (
 import os
 
 from celery import Celery
-from celery.schedules import crontab
 from decouple import config
 
 # set the default Django settings module for the 'celery' program.
@@ -30,13 +29,3 @@ app.autodiscover_tasks()
 app.conf.update(
     CELERY_IMPORTS=["app.tasks"],
 )
-app.conf.beat_schedule = {
-    "send-show-reminders": {
-        "task": "app.tasks.send_reminders",
-        "schedule": crontab(hour=17, minute=15),
-    },
-    "send-movie-digital-notifications": {
-        "task": "app.tasks.check_for_digital_task_via_api",
-        "schedule": crontab(hour=13, minute=30),
-    },
-}
