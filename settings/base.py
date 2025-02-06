@@ -72,7 +72,7 @@ OIDC_OP_ISSUER = f"{config("AUTH0_DOMAIN")}/"
 
 # Django login/logout redirection
 LOGIN_REDIRECT_URL = "/docs/swagger"
-LOGOUT_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/docs/swagger"
 
 ALLOW_LOGOUT_GET_METHOD = True
 

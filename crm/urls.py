@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import (
     include,
@@ -55,3 +56,9 @@ urlpatterns = [
     path("accounts/login/", RedirectView.as_view(url="/oidc/authenticate/")),
     path("accounts/logout/", RedirectView.as_view(url="/oidc/logout/")),
 ]
+
+
+if not settings.DEBUG:
+    urlpatterns += [
+        path("", RedirectView.as_view(url="/docs/swagger/")),
+    ]

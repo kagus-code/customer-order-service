@@ -6,6 +6,8 @@ services:
     env_file:
       - ./.env
     command: ./entrypoint.sh
+    volumes:
+      - crm-static:/customer-order-service/staticfiles
     ports:
       - 3016:3016
     depends_on:
@@ -57,3 +59,4 @@ services:
 
 volumes:
   crmdb:
+  crm-static:
