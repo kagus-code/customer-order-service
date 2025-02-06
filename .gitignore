@@ -132,5 +132,7 @@ flower.dir
 flower.dat
 flower.bak
 
+staticfiles
+
 rabbitmq-definitions.json
 
