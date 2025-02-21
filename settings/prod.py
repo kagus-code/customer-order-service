@@ -1,4 +1,5 @@
 from .base import *  # noqa: F403,F401
+import os
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -15,12 +16,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # noqa ignore=F405
 # Enable Whitenoise compression and caching
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-ALLOWED_HOSTS += [  # noqa
-    "api.crm.kagwima.com",  # noqa
-]
 
+def get_env_list(var_name, default=None):
+    value = os.getenv(var_name, default)
+    if value:
+        return value.split(",")
+    return default or []
+
+
+ALLOWED_HOSTS += get_env_list("ALLOWED_HOSTS", ["localhost"])  # noqa
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://api.crm.kagwima.com",  # noqa
-]
+
+CORS_ALLOWED_ORIGINS = get_env_list("CORS_ALLOWED_ORIGINS", [])  # noqa
