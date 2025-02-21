@@ -8,25 +8,14 @@ repos:
       - id: trailing-whitespace
       - id: check-merge-conflict
 
-  - repo: https://github.com/hadialqattan/pycln
-    rev: v2.5.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.6.5  # Use the latest version as of Feb 2025
     hooks:
-      - id: pycln
-        args: [--all]
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]  # Fixes issues and fails if fixes are needed
+      - id: ruff-format  # Optional: Use Ruff’s formatter instead of black
 
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 23.12.1
     hooks:
       - id: black
-
-  - repo: https://github.com/pycqa/isort
-    rev: 6.0.0
-    hooks:
-      - id: isort
-        name: isort (python)
-        args: ["--profile", "black", "--force-grid-wrap=2"]
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
-    hooks:
-      - id: flake8
