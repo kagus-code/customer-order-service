@@ -109,9 +109,6 @@ jobs:
           git reset --hard origin/main
           git pull origin main
 
-          # Bring down any existing containers
-          docker-compose down
-
           # Build and start containers
           docker-compose up -d --build
 
