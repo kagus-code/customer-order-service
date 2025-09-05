@@ -29,8 +29,8 @@ jobs:
         ports:
           - 5672:5672
     env:
-      SECRET_KEY: 'secretive_things_remain_hidden'
-      DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/github_actions'
+      SECRET_KEY: "secretive_things_remain_hidden"
+      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/github_actions"
       DEBUG: true
       SETTINGS_FILE: "settings.test"
       BROKER_URL: "amqp://guest:guest@localhost:5672/"
@@ -71,56 +71,49 @@ jobs:
           pipenv run coverage run -m pytest --disable-warnings
           pipenv run coverage report -m
 
-
   build-and-deploy:
-            name: Build and Deploy to DigitalOcean
-            runs-on: ubuntu-latest
-            needs: [test]
-            if: github.ref == 'refs/heads/main'
+    name: Build and Deploy to Intersever
+    runs-on: [self-hosted, linux, x64]
+    needs: [test]
+    if: github.ref == 'refs/heads/main'
 
-            steps:
-              - name: Checkout repository
-                uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-              - name: Deploy to DigitalOcean
-                uses: appleboy/ssh-action@master
-                with:
-                  host: ${{ secrets.HOSTURL }}
-                  username: ${{ secrets.HOSTNAME }}
-                  key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  script_stop: true
-                  script: |
-                    # Check if the django-projects directory exists
-                    if [ ! -d "~/django-projects" ]; then
-                      echo "First-time setup: Creating django-projects directory and installing dependencies..."
-                      mkdir -p ~/django-projects
-                      sudo apt update
-                      sudo apt install -y docker.io docker-compose
-                      sudo systemctl start docker
-                      sudo systemctl enable docker
-                    fi
+      - name: Deploy Application
+        run: |
+          # Check if the projects directory exists
+          if [ ! -d "/srv/projects" ]; then
+            echo "First-time setup: Creating projects directory and installing dependencies..."
+            sudo mkdir -p /srv/projects
+            sudo apt update
+            sudo apt install -y docker.io docker-compose
+            sudo systemctl start docker
+            sudo systemctl enable docker
+          fi
 
-                    # Navigate to the django-projects directory
-                    cd ~/django-projects
+          # Navigate to the projects directory
+          cd /srv/projects
 
-                    # Clone the repository if the project folder does not exist
-                    if [ ! -d "customer-order-service" ]; then
-                      echo "First-time clone of the repository..."
-                      git clone ${{ secrets.REPO_URL }} customer-order-service
-                    fi
+          # Clone the repository if the project folder does not exist
+          if [ ! -d "customer-order-service" ]; then
+            echo "First-time clone of the repository..."
+            git clone ${{ secrets.REPO_URL }} customer-order-service
+          fi
 
-                    cd customer-order-service
+          cd customer-order-service
 
-                    # Pull the latest changes
-                    git fetch origin
-                    git reset --hard origin/main
-                    git pull origin main
+          # Pull the latest changes
+          git fetch origin
+          git reset --hard origin/main
+          git pull origin main
 
-                    # Bring down any existing containers
-                    docker-compose down
+          # Bring down any existing containers
+          docker-compose down
 
-                    # Build and start containers
-                    docker-compose up -d --build
+          # Build and start containers
+          docker-compose up -d --build
 
-                    # Clean up unused Docker resources
-                    docker system prune -f
+          # Clean up unused Docker resources
+          docker system prune -f
