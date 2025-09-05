@@ -11,6 +11,7 @@ ALLOWED_HOSTS += []  # noqa ignore=F405
 STATIC_URL = "static/"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # noqa ignore=F405
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 
 # Enable Whitenoise compression and caching
